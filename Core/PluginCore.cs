@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ExileCore;
+using CurioDataScience.Enums;
 using CurioDataScience.Data;
 using CurioDataScience.Item;
 using CurioDataScience.UI;
 using CurioDataScience.Config;
+using ExileCore;
 
 namespace CurioDataScience.Core
 {
@@ -24,7 +25,7 @@ namespace CurioDataScience.Core
         private readonly TimeSpan _bufferCheckInterval = TimeSpan.FromSeconds(1);
         private readonly TimeSpan _completionTimeout = TimeSpan.FromSeconds(10);
         
-        public PluginCore(GameController gameController, ExileCore.Graphics graphics)
+        public PluginCore(GameController gameController, Graphics graphics)
         {
             _gameController = gameController;
             _eventManager = new EventManager();
@@ -50,7 +51,7 @@ namespace CurioDataScience.Core
             
             _eventManager.Subscribe("ClearBuffer", data => ClearBuffer());
             
-            _eventManager.Subscribe("CloseFilterUI", data => ExileCore.DebugWindow.LogMsg("Filter UI closed", 2));
+            _eventManager.Subscribe("CloseFilterUI", data => DebugWindow.LogMsg("Filter UI closed", 2));
         }
         
         public void Update()
@@ -71,7 +72,7 @@ namespace CurioDataScience.Core
             }
             catch (Exception e)
             {
-                ExileCore.DebugWindow.LogError($"[Heist Data Science] Update error: {e}");
+                DebugWindow.LogError($"[Heist Data Science] Update error: {e}");
             }
         }
         
@@ -83,11 +84,11 @@ namespace CurioDataScience.Core
             }
             catch (Exception e)
             {
-                ExileCore.DebugWindow.LogError($"[Heist Data Science] Render error: {e}");
+                DebugWindow.LogError($"[Heist Data Science] Render error: {e}");
             }
         }
         
-        public void OnKeyDown(ExileCore.Shared.NativeInput.VKeys key)
+        public void OnKeyDown(Keys key)
         {
             _uiManager.OnKeyDown(key);
         }
@@ -96,13 +97,13 @@ namespace CurioDataScience.Core
         {
             if (_itemFilter.ShouldDisplayItem(item))
             {
-                ExileCore.DebugWindow.LogMsg($"Filter matched: {item.DisplayName}", 2);
+                DebugWindow.LogMsg($"Filter matched: {item.DisplayName}", 2);
             }
         }
         
         private void OnFilterChanged(List<FilterRule> rules)
         {
-            ExileCore.DebugWindow.LogMsg($"Filters updated: {rules.Count(r => r.Enabled)} enabled", 2);
+            DebugWindow.LogMsg($"Filters updated: {rules.Count(r => r.Enabled)} enabled", 2);
         }
         
         private void CheckForBufferFlush()
@@ -148,11 +149,11 @@ namespace CurioDataScience.Core
                 _bufferManager.MarkItemsAsExported(toExport);
                 
                 _eventManager.Publish("ExportComplete", toExport.Count);
-                ExileCore.DebugWindow.LogMsg($"Exported {toExport.Count} items to CSV", 5);
+                DebugWindow.LogMsg($"Exported {toExport.Count} items to CSV", 5);
             }
             catch (Exception ex)
             {
-                ExileCore.DebugWindow.LogError($"[Heist Data Science] Export failed: {ex}");
+                DebugWindow.LogError($"[Heist Data Science] Export failed: {ex}");
             }
         }
         
@@ -165,14 +166,14 @@ namespace CurioDataScience.Core
             }
             else
             {
-                ExileCore.DebugWindow.LogMsg("No completed items to export", 2);
+                DebugWindow.LogMsg("No completed items to export", 2);
             }
         }
         
         private void ClearBuffer()
         {
             _bufferManager.Clear();
-            ExileCore.DebugWindow.LogMsg("Buffer cleared", 2);
+            DebugWindow.LogMsg("Buffer cleared", 2);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace CurioDataScience.UI
 {
     public class RenderHelper
     {
-        public void ShowBufferStatus(ExileCore.Graphics graphics, BufferManager bufferManager)
+        public void ShowBufferStatus(Graphics graphics, BufferManager bufferManager)
         {
             var startX = 50f;
             var yCursor = (float)Constants.TextPositionY;
@@ -67,7 +67,7 @@ namespace CurioDataScience.UI
             }
         }
         
-        public void DisplayCurrentRewards(ExileCore.Graphics graphics, List<HeistRewardInfo> rewards, ItemFilter filter)
+        public void DisplayCurrentRewards(Graphics graphics, List<HeistRewardInfo> rewards, ItemFilter filter)
         {
             if (rewards.Count == 0) return;
             

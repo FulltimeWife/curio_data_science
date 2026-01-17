@@ -1,6 +1,6 @@
 ﻿using System;
 using ExileCore;
-using ExileCore.Shared.NativeInput;
+using ExileCore.Shared.Enums;
 using CurioDataScience.Core;
 
 namespace CurioDataScience
@@ -11,10 +11,9 @@ namespace CurioDataScience
         
         public override bool Initialise()
         {
-            _pluginCore = new PluginCore(GameController, Graphics);
-            DebugWindow.LogMsg("[Heist Data Science] initialized with modular architecture", 5);
-            DebugWindow.LogMsg("[Heist Data Science] Filter system active - Press F2 to configure filters", 5);
-            DebugWindow.LogMsg("[Heist Data Science] Press F1 for debug window, F3 to force export, F4 to clear buffer", 5);
+            _pluginCore = new PluginCore(GameController);
+            LogMessage("Heist Data Science initialized with modular architecture");
+            LogMessage("Filter system active - showing only filtered items");
             return true;
         }
         
@@ -22,13 +21,10 @@ namespace CurioDataScience
         {
             base.Render();
             _pluginCore.Update();
-            _pluginCore.Render();
+            _pluginCore.Render(Graphics);
         }
         
-        public override bool KeyDown(VKeys key)
-        {
-            _pluginCore.OnKeyDown(key);
-            return base.KeyDown(key);
-        }
+        private void LogMessage(string message) => 
+            DebugWindow.LogMsg($"[Heist Data Science] {message}", 1);
     }
 }

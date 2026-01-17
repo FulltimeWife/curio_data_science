@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using SharpDX;
 using ExileCore;
-using ExileCore.Shared;
 using CurioDataScience.Item;
 using CurioDataScience.Data;
 using CurioDataScience.Config;
+using CurioDataScience.Enums;
 using CurioDataScience.Core;
 
 namespace CurioDataScience.UI
@@ -62,7 +62,7 @@ namespace CurioDataScience.UI
             }
             catch (Exception ex)
             {
-                ExileCore.DebugWindow.LogError($"UI Manager render error: {ex}");
+                DebugWindow.LogError($"UI Manager render error: {ex}");
             }
         }
         
@@ -95,23 +95,23 @@ namespace CurioDataScience.UI
             _graphics.DrawText("F4: Clear Buffer", controlsPos, Color.LightGray);
         }
         
-        public void OnKeyDown(ExileCore.Shared.NativeInput.VKeys key)
+        public void OnKeyDown(Keys key)
         {
             switch (key)
             {
-                case ExileCore.Shared.NativeInput.VKeys.F1:
+                case Keys.F1:
                     _showDebugWindow = !_showDebugWindow;
                     break;
                     
-                case ExileCore.Shared.NativeInput.VKeys.F2:
+                case Keys.F2:
                     _showFilterUI = !_showFilterUI;
                     break;
                     
-                case ExileCore.Shared.NativeInput.VKeys.F3:
+                case Keys.F3:
                     _eventManager.Publish("ForceExport", null);
                     break;
                     
-                case ExileCore.Shared.NativeInput.VKeys.F4:
+                case Keys.F4:
                     _eventManager.Publish("ClearBuffer", null);
                     break;
             }
