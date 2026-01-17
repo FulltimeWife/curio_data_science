@@ -224,7 +224,7 @@ namespace CurioDataScience.Item
             }
             catch (Exception e)
             {
-                DebugWindow.LogError(e.ToString());
+                ExileCore.DebugWindow.LogError(e.ToString());
             }
 
             return new HeistRewardInfo(

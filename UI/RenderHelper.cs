@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SharpDX;
+using ExileCore;
 using CurioDataScience.Core;
 using CurioDataScience.Item;
 using CurioDataScience.Data;

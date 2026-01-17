@@ -1,5 +1,6 @@
 ﻿using System;
 using ExileCore;
+using ExileCore.Shared.Enums;
 using CurioDataScience.Core;
 
 namespace CurioDataScience

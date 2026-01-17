@@ -5,6 +5,7 @@ using SharpDX;
 using ExileCore;
 using CurioDataScience.Item;
 using CurioDataScience.Config;
+using CurioDataScience.Core;
 
 namespace CurioDataScience.UI
 {

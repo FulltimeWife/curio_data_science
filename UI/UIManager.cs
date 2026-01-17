@@ -5,6 +5,8 @@ using ExileCore;
 using CurioDataScience.Item;
 using CurioDataScience.Data;
 using CurioDataScience.Config;
+using CurioDataScience.Enums;
+using CurioDataScience.Core;
 
 namespace CurioDataScience.UI
 {
