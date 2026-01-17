@@ -37,7 +37,7 @@ namespace CurioDataScience.Core
                     }
                     catch (Exception ex)
                     {
-                        DebugWindow.LogError($"Event handler error for {eventName}: {ex}");
+                        ExileCore.DebugWindow.LogError($"Event handler error for {eventName}: {ex}");
                     }
                 }
             }

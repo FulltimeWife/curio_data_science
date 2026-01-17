@@ -28,13 +28,13 @@ namespace CurioDataScience.UI
             _displayRules = FilterConfig.GetDefaultRules();
         }
         
-        public void Render(Graphics graphics)
+        public void Render(ExileCore.Graphics graphics)
         {
             DrawWindow(graphics);
             DrawFilterRules(graphics);
         }
         
-        private void DrawWindow(Graphics graphics)
+        private void DrawWindow(ExileCore.Graphics graphics)
         {
             graphics.DrawBox(_position, _size, Color.DarkSlateGray);
             
@@ -45,7 +45,7 @@ namespace CurioDataScience.UI
             graphics.DrawText("X", closeButtonPos, Color.Red);
         }
         
-        private void DrawFilterRules(Graphics graphics)
+        private void DrawFilterRules(ExileCore.Graphics graphics)
         {
             var yPos = _position.Y + 30;
             var xPos = _position.X + 10;
