@@ -1,6 +1,8 @@
+﻿﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Text;
 using ExileCore;
 using ExileCore.PoEMemory;
 using ExileCore.PoEMemory.Components;
@@ -36,6 +38,8 @@ namespace CurioDataScience
 
         private List<HeistRewardInfo> lastVisibleRewards = new();
 
+        private ItemFilter itemFilter = new ItemFilter();
+
         private record HeistRewardInfo(
             string LabelText, 
             System.Numerics.Vector2 Pos, 
@@ -68,6 +72,8 @@ namespace CurioDataScience
             public int VisibilityCount { get; set; }
             public bool IsExported { get; set; }
             public string ContentHash { get; set; }
+            public uint? ItemOnGroundId { get; set; }
+            public string CompositeKey => $"{ContentHash}|{ItemOnGroundId}";
         }
 
         private enum RewardState
@@ -344,6 +350,11 @@ namespace CurioDataScience
             
             var updatedAny = false;
             
+            // Clean up old exported items first
+            bufferedRewards.RemoveAll(b => 
+                b.State == RewardState.Exported && 
+                (DateTime.Now - b.LastSeen).TotalMinutes > 5);
+            
             foreach (var buffered in bufferedRewards.ToList())
             {
                 bool isCurrentlyVisible = false;
@@ -352,7 +363,9 @@ namespace CurioDataScience
                 foreach (var reward in currentRewards)
                 {
                     var hash = CreateContentHash(reward);
-                    if (hash == buffered.ContentHash)
+                    var compositeKey = $"{hash}|{reward.ItemOnGroundId}";
+                    
+                    if (compositeKey == buffered.CompositeKey)
                     {
                         isCurrentlyVisible = true;
                         matchingReward = reward;
@@ -392,7 +405,6 @@ namespace CurioDataScience
                                 LogMessage($"{buffered.Reward.EnchantedStats?.Count ?? 0} enchanted stats: {string.Join(" | ", buffered.Reward.EnchantedStats ?? new List<string>())}");
                                 LogMessage($"{buffered.Reward.HumanStats?.Count ?? 0} human stats: {string.Join(" | ", buffered.Reward.HumanStats ?? new List<string>())}");
                             }
-                            
                         }
                         else
                         {
@@ -412,23 +424,17 @@ namespace CurioDataScience
                         updatedAny = true;
                     }
                 }
-                
-                if (buffered.State == RewardState.Exported && 
-                    (DateTime.Now - buffered.LastSeen).TotalMinutes > 5)
-                {
-                    bufferedRewards.Remove(buffered);
-                    updatedAny = true;
-                }
             }
             
             foreach (var reward in currentRewards)
             {
                 var hash = CreateContentHash(reward);
+                var compositeKey = $"{hash}|{reward.ItemOnGroundId}";
                 
-                bool alreadyExists = bufferedRewards.Any(b => b.ContentHash == hash);
+                bool alreadyExists = bufferedRewards.Any(b => b.CompositeKey == compositeKey);
                 if (alreadyExists)
                 {
-                    var existing = bufferedRewards.First(b => b.ContentHash == hash);
+                    var existing = bufferedRewards.First(b => b.CompositeKey == compositeKey);
                     existing.Reward = reward;
                     existing.LastSeen = DateTime.Now;
                     if (existing.State != RewardState.Visible)
@@ -441,7 +447,6 @@ namespace CurioDataScience
 
                 if (string.IsNullOrEmpty(reward.DisplayName))
                 {
-                    LogMessage($"{reward}");
                     LogMessage($"Skipping suspicious item: {reward.DisplayName ?? "Unknown"}");
                     continue;
                 }
@@ -450,6 +455,7 @@ namespace CurioDataScience
                 {
                     Reward = reward,
                     ContentHash = hash,
+                    ItemOnGroundId = reward.ItemOnGroundId,
                     State = RewardState.New,
                     FirstSeen = DateTime.Now,
                     LastSeen = DateTime.Now,
@@ -459,7 +465,7 @@ namespace CurioDataScience
                 });
                 
                 updatedAny = true;
-                LogMessage($"New reward buffered: {reward.DisplayName} (Hash: {hash})");
+                LogMessage($"New reward buffered: {reward.DisplayName} (ID: {reward.ItemOnGroundId}, Hash: {hash})");
             }
             
             if (updatedAny)
@@ -735,24 +741,66 @@ namespace CurioDataScience
             var startX = 50f;
             var yCursor = 400f;
             
-            Graphics.DrawText($"Currently Visible ({rewards.Count}):", new System.Numerics.Vector2(startX, yCursor), SharpDX.Color.White);
+            var filteredItems = new List<(string displayText, HeistRewardInfo reward)>();
+            foreach (var reward in rewards)
+            {
+                var itemData = new ItemData(
+                    reward.DisplayName, 
+                    reward.BaseName, 
+                    reward.EnchantedStats, 
+                    reward.HumanStats,
+                    reward.ModTranslations,
+                    reward.EnchantedModValues);
+                
+                string matchedFilter = itemFilter.GetMatchingFilterName(itemData);
+                
+                if (!string.IsNullOrEmpty(matchedFilter))
+                {
+                    string displayText = FormatDisplayText(matchedFilter, reward);
+                    filteredItems.Add((displayText, reward));
+                }
+            }
+            
+            Graphics.DrawText($"Active Filters ({filteredItems.Count}/{rewards.Count}):", 
+                new System.Numerics.Vector2(startX, yCursor), SharpDX.Color.White);
             yCursor += 20;
             
-            var maxToShow = Math.Min(5, rewards.Count);
+            var maxToShow = Math.Min(5, filteredItems.Count);
             for (int i = 0; i < maxToShow; i++)
             {
-                var info = rewards[i];
+                var (displayText, info) = filteredItems[i];
                 var color = colors[i % colors.Length];
-                Graphics.DrawText($"{i+1}. {info.DisplayName}", new System.Numerics.Vector2(startX, yCursor), color);
+                
+                Graphics.DrawText($"{i+1}. {displayText}", 
+                    new System.Numerics.Vector2(startX, yCursor), color);
                 yCursor += 16;
             }
         }
 
+        private string FormatDisplayText(string filterName, HeistRewardInfo reward)
+        {
+            bool isCurrency = string.Equals(reward.ClassName, "stackablecurrency", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(reward.ClassName, "mapfragment", StringComparison.OrdinalIgnoreCase);
+            
+            if (isCurrency && reward.StackSize.HasValue && reward.StackSize.Value > 1)
+            {
+                return $"{filterName} (x{reward.StackSize})";
+            }
+            
+            return filterName;
+        }
+        
         private static string QuoteCsv(string input)
         {
             if (input == null) return "";
             var outp = input.Replace("\"", "\"\"");
             return $"\"{outp}\"";
         }
+        
+        private void LogMessage(string message) => 
+            DebugWindow.LogMsg($"[Heist Data Science] {message}", 1);
+        
+        private void LogError(string error) => 
+            DebugWindow.LogError($"[Heist Data Science] {error}", 2);
     }
 }
